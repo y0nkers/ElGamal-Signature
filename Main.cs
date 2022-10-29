@@ -13,6 +13,24 @@ namespace ElGamal_Signature
 
         private void signMessage(object sender, EventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(textBoxMessage.Text))
+            {
+                MessageBox.Show("Enter a message to sign!", "Sign message");
+                return;
+            }
+
+            if (elGamal.IsEmptyKey())
+            {
+                MessageBox.Show("Cant sign message without public key!", "Sign message");
+                return;
+            }
+
+            if (elGamal.GetKey().x == 0)
+            {
+                MessageBox.Show("Cant sign message without private key!", "Sign message");
+                return;
+            }
+
             // Compute message digest with md5 hash
             MD5 md5 = MD5.Create();
             byte[] message = Encoding.Default.GetBytes(textBoxMessage.Text);
@@ -22,11 +40,29 @@ namespace ElGamal_Signature
             byte[] signature_bytes = elGamal.Sign(digest);
 
             // Output signature in hex format
-            txtOutput.Text = BitConverter.ToString(signature_bytes).Replace("-", " ");
+            textBoxSignature.Text = BitConverter.ToString(signature_bytes).Replace("-", " ");
         }
 
         private void verifyMessage(object sender, EventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(textBoxMessage.Text))
+            {
+                MessageBox.Show("Enter a message to verify!", "Verify signature");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(textBoxSignature.Text))
+            {
+                MessageBox.Show("Enter a signature to verify!", "Verify signature");
+                return;
+            }
+
+            if (elGamal.IsEmptyKey())
+            {
+                MessageBox.Show("Cant verify signature without public key!", "Verify signature");
+                return;
+            }
+
             MD5 md5 = MD5.Create();
             byte[] message = Encoding.Default.GetBytes(textBoxMessage.Text);
             byte[] digest = md5.ComputeHash(message);
@@ -47,17 +83,6 @@ namespace ElGamal_Signature
             }
         }
 
-        private void btnPublicP_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                Clipboard.SetText(textBoxP.Text);
-            }
-            catch (Exception ex)
-            {
-                return;
-            }
-        }
         private void openFile(object sender, EventArgs e)
         {
             ofd.FileName = "";
@@ -80,7 +105,9 @@ namespace ElGamal_Signature
                 s = new BigInteger(signature[1], 10)
             };
             elGamal.SetSignature(sign);
-            
+
+            byte[] signature_bytes = elGamal.GetSignatureBytes();
+            textBoxSignature.Text = BitConverter.ToString(signature_bytes).Replace("-", " ");
         }
 
         private void saveSignature(object sender, EventArgs e)
@@ -92,11 +119,13 @@ namespace ElGamal_Signature
             Signature sign = elGamal.GetSignature();
             string[] signature = { sign.r.ToString(), sign.s.ToString() };
             File.WriteAllLines(sfd.FileName, signature);
+
+            MessageBox.Show("Signature saved in " + sfd.FileName, "Save signature");
         }
 
         private void GenerateKey(object sender, EventArgs e)
         {
-            elGamal.CreateKey(elGamal.keySize);
+            elGamal.CreateKey();
             Key key = elGamal.GetKey();
             textBoxP.Text = key.p.ToString();
             textBoxG.Text = key.g.ToString();
@@ -134,6 +163,7 @@ namespace ElGamal_Signature
 
             string[] key = { textBoxP.Text, textBoxG.Text, textBoxY.Text };
             File.WriteAllLines(sfd.FileName, key);
+            MessageBox.Show("Public key saved in " + sfd.FileName, "Export public key");
         }
 
         private void importPrivateKey(object sender, EventArgs e)
@@ -154,6 +184,7 @@ namespace ElGamal_Signature
             if (sfd.ShowDialog() == DialogResult.Cancel) return;
 
             File.WriteAllText(sfd.FileName, textBoxX.Text);
+            MessageBox.Show("Private key saved in " + sfd.FileName, "Export private key");
         }
     }
 }
