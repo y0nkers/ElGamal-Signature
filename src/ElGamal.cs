@@ -92,9 +92,8 @@
         {
             BigInteger left = mod(key.y.modPow(signature.r, key.p) * signature.r.modPow(signature.s, key.p), key.p);
             BigInteger right = key.g.modPow(new BigInteger(message_hash), key.p);
-            if (left == right) MessageBox.Show("Sign verified");
-            else MessageBox.Show("Sign not verified");
-            return true;
+            if (left == right) return true;
+            else return false;
         }
 
         private static BigInteger mod(BigInteger p_base, BigInteger p_val)

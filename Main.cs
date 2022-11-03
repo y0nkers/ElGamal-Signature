@@ -66,7 +66,9 @@ namespace ElGamal_Signature
             MD5 md5 = MD5.Create();
             byte[] message = Encoding.Default.GetBytes(textBoxMessage.Text);
             byte[] digest = md5.ComputeHash(message);
-            elGamal.Verify(digest);
+            textBoxDigest.Text = BitConverter.ToString(digest).Replace("-", " ");
+            if (elGamal.Verify(digest) == true) MessageBox.Show("Sign verified", "Verify signature");
+            else MessageBox.Show("Sign not verified", "Verify signature");
         }
 
         private void btnPrivateKey_Click(object sender, EventArgs e)
